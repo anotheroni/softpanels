@@ -1,0 +1,11 @@
+{
+    "name": "snap.svg_test",
+    "version": "0.0.1",
+    "description": "Test of snap.svg, socket.io and express to display soft panels",
+    "dependencies": {
+        "socket.io": "latest",
+        "express": "latest",
+        "jade": "latest"
+    },
+    "author": "Oskar Nilsson"
+}
