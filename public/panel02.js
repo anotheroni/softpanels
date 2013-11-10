@@ -9,9 +9,30 @@ window.onload = function() {
   window.requestAnimationFrame = requestAnimationFrame;
 })();
 
-// snap.svg
-var s = Snap("#svg");
-Snap.load("panel02.svg",onDrawingLoaded);
+// JSON definition of panel
+var jsonpanel = { "config": {
+    "do": [
+        { "id":"do01", "x":100, "y":100 },
+        { "id":"do02", "x":200, "y":200 },
+        { "id":"do03", "x":300, "y":300 },
+        { "id":"do04", "x":400, "y":400 },
+    ],
+    "di": [
+        { "id":"pb01", "x":100, "y":100 },
+        { "id":"pb02", "x":100, "y":100 },
+        { "id":"pb03", "x":100, "y":100 },
+        { "id":"pb04", "x":100, "y":100 },
+        { "id":"pb05", "x":100, "y":100 },
+    ],
+    "ao": [
+        { "id":"ao01", "x":100, "y":100 },
+    ]
+}};
+
+
+var doconfig = jsonpanel['config']['do'];
+var diconfig = jsonpanel['config']['di'];
+var elements = {};
 var ao01;
 var ao02;
 var ao03;
@@ -20,50 +41,72 @@ var lp01;
 var lp02;
 var lp04;
 var lp05;
-var pb01;
-var pb02;
-var pb03;
-var pb04;
-var pb05;
 var socket;
 var connected=0;
 var valvpos=0;
 var pumpflow=0;
 var level=0.0;
+var animating = {};
+var cleartimers = {};
+// snap.svg
+var s = Snap("#svg");
+Snap.load("panel02.svg",onDrawingLoaded);
 
 // Socket.io 
-//(function(){
-  socket = io.connect();
-  socket.on('connect', function () {
-    connected=1;
-  });
-  socket.on('disconnect', function() {
-    connected=0;
-  });
-  socket.on('message', function(data) {
-    var obj=JSON.parse(data);
-    valvpos=obj.valvpos;
-    pumpflow=obj.pumpflow;
-  });
- 
+socket = io.connect();
+socket.on('connect', function () {
+  connected=1;
+});
+socket.on('disconnect', function() {
+  connected=0;
+});
+socket.on('message', function(data) {
+  var obj=JSON.parse(data);
+  valvpos=obj.valvpos;
+  pumpflow=obj.pumpflow;
+});
+
+
+function show(key) {
+    if (animating[key]) return;
+    clearTimeout(cleartimers[key]);
+    animating[key] = true;
+    var element = elements[key],
+        x = element[0].getBBox().x,
+        offset = x/2 + 25;
+    element[0].attr({
+        transform: "translate("+offset+",80) scale(0.5, 0.5)"
+    });
+    setTimeout(function() {
+        element[0].animate({opacity:1,transform:""}, 500, mina.elastic);
+    }, 50);
+    //element[1].animate({opacity:0.25}, 400);
+    setTimeout(function(){animating[key] = false}, 550);
+}
+
+
 // snap.svg
-function pb01click() {
-    socket.send("pb01");
-}
-function pb02click() {
-    socket.send("pb02");
-}
-function pb03click() {
-    socket.send("pb03");
-}
-function pb04click() {
-    socket.send("pb04");
-}
-function pb05click() {
-    socket.send("pb05");
+function pbclick() {
+    show(this.node.id);
+    socket.send(this.node.id);
 }
 
 function onDrawingLoaded(d){
+  for (i = 0; i < diconfig.length; i++) {
+    var key = diconfig[i]['id'];
+    var obj = d.select("#"+key);
+    obj.click(pbclick);
+    elements[key] = [obj];
+  }
+  lp00 = d.select("#lp00");
+  for (i=0; i<doconfig.length; i++) {
+    var key = doconfig[i]['id'];
+    var x = doconfig[i]['x'];
+    var y = doconfig[i]['y'];
+    var objj = lp00.clone();
+    objj.attr({id: "#"+key, transform: "translate("+x+","+y+")"});
+  }
+
   ao01 = d.select("#needle01");
   ao02 = d.select("#needle02");
   ao03 = d.select("#needle03");
@@ -72,16 +115,6 @@ function onDrawingLoaded(d){
   lp02 = d.select("#lp02");
   lp04 = d.select("#lp04");
   lp05 = d.select("#lp05");
-  pb01 = d.select("#pb01");
-  pb01.click(pb01click);
-  pb02 = d.select("#pb02");
-  pb02.click(pb02click);
-  pb03 = d.select("#pb03");
-  pb03.click(pb03click);
-  pb04 = d.select("#pb04");
-  pb04.click(pb04click);
-  pb05 = d.select("#pb05");
-  pb05.click(pb05click);
   s.append(d);
   requestAnimationFrame(step);
 }
@@ -121,9 +154,10 @@ function step(timestamp) {
   m02.scale(0.6,0.6,15,15);
   ao02.transform(m02);
   var m03 = new Snap.Matrix();
-  m03.translate(595,120);
-  m03.rotate(level,15,15);
-  m03.scale(0.6,0.6,15,15);
+  //m03.translate(595,120);
+  //m03.rotate(level,15,15);
+  m03.rotate(level,610,135);
+  //m03.scale(0.6,0.6,15,15);
   ao03.transform(m03);
 
   requestAnimationFrame(step);
