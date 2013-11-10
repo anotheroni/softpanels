@@ -12,35 +12,34 @@ window.onload = function() {
 // JSON definition of panel
 var jsonpanel = { "config": {
     "do": [
-        { "id":"do01", "x":100, "y":100 },
-        { "id":"do02", "x":200, "y":200 },
-        { "id":"do03", "x":300, "y":300 },
-        { "id":"do04", "x":400, "y":400 },
+        { "id":"lp00", "x":10, "y":10 },
+        { "id":"lp01", "x":80, "y":220 },
+        { "id":"lp02", "x":130, "y":220 },
+        { "id":"lp04", "x":500, "y":700 },
+        { "id":"lp05", "x":550, "y":700 },
     ],
     "di": [
-        { "id":"pb01", "x":100, "y":100 },
-        { "id":"pb02", "x":100, "y":100 },
-        { "id":"pb03", "x":100, "y":100 },
-        { "id":"pb04", "x":100, "y":100 },
-        { "id":"pb05", "x":100, "y":100 },
+        { "id":"pb01", "x":80, "y":170 },
+        { "id":"pb02", "x":130, "y":170 },
+        { "id":"pb03", "x":180, "y":170 },
+        { "id":"pb04", "x":500, "y":650 },
+        { "id":"pb05", "x":550, "y":650 },
     ],
     "ao": [
-        { "id":"ao01", "x":100, "y":100 },
+        { "id":"ao01", "x":20, "y":300 },
+        { "id":"ao02", "x":200, "y":300 },
+        { "id":"ao03", "x":500, "y":10 },
     ]
 }};
 
 
 var doconfig = jsonpanel['config']['do'];
 var diconfig = jsonpanel['config']['di'];
+var aoconfig = jsonpanel['config']['ao'];
 var elements = {};
 var ao01;
 var ao02;
 var ao03;
-var lp00;
-var lp01;
-var lp02;
-var lp04;
-var lp05;
 var socket;
 var connected=0;
 var valvpos=0;
@@ -48,9 +47,22 @@ var pumpflow=0;
 var level=0.0;
 var animating = {};
 var cleartimers = {};
+var subdrawingsloaded = false;
+var panelloaded = false;
+var panel;
+var subdrawings;
 // snap.svg
 var s = Snap("#svg");
-Snap.load("panel02.svg",onDrawingLoaded);
+Snap.load('subdrawings01.svg', function(o) {
+  subdrawings = o;
+  subdrawingsloaded = true;
+  if (panelloaded) { onDrawingLoaded(panel); }
+});
+Snap.load("panel02.svg", function(o) {
+  panel = o;
+  panelloaded = true;
+  if (subdrawingsloaded) { onDrawingLoaded(panel); }
+});
 
 // Socket.io 
 socket = io.connect();
@@ -84,60 +96,77 @@ function show(key) {
     setTimeout(function(){animating[key] = false}, 550);
 }
 
-
-// snap.svg
+// Callback for onclick on buttons
 function pbclick() {
-    show(this.node.id);
-    socket.send(this.node.id);
+//  show(this.node.id);
+  socket.send(this.node.id);
+}
+
+function setfill(key, color) {
+  try {
+    elements[key][0].attr({fill:color});
+  } catch(err) {
+    return;
+  }
 }
 
 function onDrawingLoaded(d){
-  for (i = 0; i < diconfig.length; i++) {
-    var key = diconfig[i]['id'];
-    var obj = d.select("#"+key);
-    obj.click(pbclick);
-    elements[key] = [obj];
-  }
-  lp00 = d.select("#lp00");
-  for (i=0; i<doconfig.length; i++) {
-    var key = doconfig[i]['id'];
-    var x = doconfig[i]['x'];
-    var y = doconfig[i]['y'];
-    var objj = lp00.clone();
-    objj.attr({id: "#"+key, transform: "translate("+x+","+y+")"});
-  }
-
   ao01 = d.select("#needle01");
   ao02 = d.select("#needle02");
   ao03 = d.select("#needle03");
-  lp00 = d.select("#lp00");
-  lp01 = d.select("#lp01");
-  lp02 = d.select("#lp02");
-  lp04 = d.select("#lp04");
-  lp05 = d.select("#lp05");
   s.append(d);
+  var sd_meter01 = subdrawings.select("#meter01");
+  for (i=0; i<aoconfig.length; i++) {
+    var key = aoconfig[i]['id'];
+    var obj = sd_meter01.clone();
+    // [18:22:38.021] NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIDOMSVGLocatable.getBBox] @ http://localhost:8080/snap.svg.js:5371
+    //obj.attr({id: "#"+key, transform: "translate("+aoconfig[i]['x']+","+aoconfig[i]['y']+")"});
+    obj.attr({id: "#"+key});
+    s.append(obj);
+    elements[key] = [obj];
+  }
+  var sd_lp01 = subdrawings.select("#lp01");
+  for (i=0; i<doconfig.length; i++) {
+    var key = doconfig[i]['id'];
+    var obj = sd_lp01.clone();
+    obj.attr({id: "#"+key, transform: "translate("+doconfig[i]['x']+","+doconfig[i]['y']+")"});
+    s.append(obj);
+    elements[key] = [obj];
+  }
+  var sd_bp01 = subdrawings.select("#pb01");
+  for (i=0; i<diconfig.length; i++) {
+    var key = diconfig[i]['id'];
+    var obj = sd_bp01.clone();
+    obj.attr({id: "#"+key});
+    //obj.attr({transform: "translate(0,0)"});
+    //, transform: "translate("+diconfig[i]['x']+","+diconfig[i]['y']+")"});
+    obj.click(pbclick);
+    s.append(obj);
+    elements[key] = [obj];
+  }
+
   requestAnimationFrame(step);
 }
 
 function step(timestamp) {
-  if (connected==0) { lp00.attr({fill:"#ff0000"}); }
-  else { lp00.attr({fill:"#00ff00"}); }
+  if (connected==0) { setfill('lp00', '#ff0000'); }
+  else { setfill('lp00', '#00ff00'); }
   if (pumpflow==0) {
-    lp01.attr({fill:"#00ff00"});
-    lp02.attr({fill:"#dddb36"});
+    setfill('lp01', '#00ff00');
+    setfill('lp02', '#dddb36');
   } else if (pumpflow > 9) {
-    lp01.attr({fill:"#008000"});
-    lp02.attr({fill:"#fffc28"});
+    setfill('lp01', '#008000');
+    setfill('lp02', '#fffc28');
   } else {
-    lp01.attr({fill:"#008000"});
-    lp02.attr({fill:"#dddb36"});
+    setfill('lp01', '#008000');
+    setfill('lp02', '#dddb36');
   }
   if (valvpos==0) {
-    lp04.attr({fill:"#00ff00"});
-    lp05.attr({fill:"#dddb36"});
+    setfill('lp04', '#00ff00');
+    setfill('lp05', '#dddb36');
   } else {
-    lp04.attr({fill:"#008000"});
-    lp05.attr({fill:"#fffc28"});
+    setfill('lp04', '#008000');
+    setfill('lp05', '#fffc28');
   }
 
   level = level + pumpflow*0.1 - valvpos*0.3;
