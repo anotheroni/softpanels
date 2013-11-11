@@ -1,1 +1,19 @@
-Proof of convept for "soft panels" using snap.svg, node.js, socket.io.
+Proof of concept for "soft panels" using snap.svg, node.js, express, socket.io.
+
+Still very much a work in progress.
+
+== Installation ==
+
+1. Install node.js
+
+2. Clone the project
+ git clone git@github.com:anotheroni/softpanels.git
+
+3. Install the dependencies
+ cd softpanels
+ npm install
+
+4. run
+ node server.js
+
+5. Open localhost:8080
