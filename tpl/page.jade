@@ -1,9 +1,30 @@
-doctype
-html
+doctype html
+html(lang='en')
     head
         title= "snap.svg test with node"
         script(src='/socket.io/socket.io.js')
         script(src='snap.svg.js')
         script(src='panel02.js')
+        link(rel='stylesheet', href='css/menu.css', type='text/css')
+
     body
+        nav
+          ul
+            li
+              a(href="#") TEST
+            li
+              a(href="#") Panel
+              ul
+                li
+                  a(href="#") Panel02
+                li
+                  a(href="#") Panel03
+                li
+                  a(href="#") Special Panels &raquo;
+                  ul
+                    li
+                      a(href="#") BA03
+                    li
+                      a(href="#") BA08
+
         svg(id="svg" width="1000" height="1000")

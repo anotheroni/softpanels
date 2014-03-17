@@ -17,3 +17,8 @@ Still very much a work in progress.
  node server.js
 
 5. Open localhost:8080
+
+== Credits ==
+
+menu.css is based on a great turorial "CSS3 Drop-down Menu" by tootorials.org
+https://www.youtube.com/watch?v=-YqLl-BXRp8
