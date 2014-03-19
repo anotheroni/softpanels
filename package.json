@@ -2,6 +2,9 @@
     "name": "snap.svg_test",
     "version": "0.0.1",
     "description": "Test of snap.svg, socket.io and express to display soft panels",
+    "scripts": {
+        "start": "node server.js"
+    },
     "dependencies": {
         "socket.io": "latest",
         "express": "latest",

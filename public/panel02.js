@@ -54,12 +54,12 @@ var oldlevel=level=0.0;
 
 // Load base drawing and subdrawings, draw when both are loaded.
 var s = Snap("#svg");
-Snap.load('subdrawings01.svg', function(o) {
+Snap.load('/subdrawings01.svg', function(o) {
   subdrawings = o;
   subdrawingsloaded = true;
   if (panelloaded) { onDrawingLoaded(panel); }
 });
-Snap.load("panel02.svg", function(o) {
+Snap.load("/panel02.svg", function(o) {
   panel = o;
   panelloaded = true;
   if (subdrawingsloaded) { onDrawingLoaded(panel); }

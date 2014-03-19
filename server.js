@@ -1,16 +1,23 @@
 var express = require('express');
+var routes = require('./routes');
 var socketio = require('socket.io');
 var app = express();
+
 var port = 8080;
  
 app.set('views', __dirname + '/tpl');
 app.set('view engine', 'jade');
 app.engine('jade', require('jade').__express);
+app.use(app.router);
 app.use(express.static(__dirname + '/public'));
 
-app.get('/', function(req, res) {
-    res.render('page', {debug:false});
-});
+// development only, error checking
+if ('development' == app.get('env')) {
+    app.use(express.errorHandler());
+}
+
+app.get('/', routes.index);
+app.get('/drawing/:name', routes.drawing);
 
 var io = socketio.listen(app.listen(port));
 
@@ -29,4 +36,4 @@ io.sockets.on('connection', function (socket) {
     io.sockets.emit('message', '{"pumpflow":'+pumpflow+',"valvpos":'+valvpos+'}');
   });
 });
-console.log("listengin on port " + port);
+console.log("listening on port " + port);
